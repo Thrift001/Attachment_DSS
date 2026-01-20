@@ -101,6 +101,46 @@ body {
 .hidden { display: none; }
 .adra-select { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid var(--border); font-weight: bold; color: var(--adra-green); }
 
+/* Clever Branding Styles */
+.header-branding {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 25px 15px;
+    background: var(--adra-green);
+    text-align: center;
+}
+
+.logo-container {
+    background: white; /* Creates a clean white circle/base for the green logo */
+    padding: 10px;
+    border-radius: 50%;
+    width: 70px;
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 15px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    border: 2px solid var(--adra-gold); /* Tie in the gold branding */
+}
+
+#adra-logo {
+    width: 100%;
+    height: auto;
+    max-height: 50px;
+    object-fit: contain;
+}
+
+.header-branding h2 {
+    color: white;
+    font-size: 1.2rem;
+    font-weight: 800;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    border: none; /* Removed the side-border for a cleaner centered look */
+}
 @media print {
   .dashboard-panel { width: 100% !important; height: auto !important; overflow: visible; }
   #map { height: 350px; width: 100% !important; border: 1px solid #eee; }

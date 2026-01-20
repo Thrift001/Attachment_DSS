@@ -1,157 +1,156 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Somalia Renewable Energy DSS</title>
-
-  <!-- CSS -->
-  <link rel="stylesheet" href="css/leaflet.css">
-  <link rel="stylesheet" href="css/fontawesome-all.min.css">
-  <link rel="stylesheet" href="css/styles.css">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>ADRA Somalia | Energy Decision Support System</title>
+    <!-- Leaflet & FontAwesome -->
+    <link rel="stylesheet" href="css/leaflet.css">
+    <link rel="stylesheet" href="css/fontawesome-all.min.css">
+    <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-  <div id="container">
-    <!-- Map -->
-    <div id="map"></div>
+    <div id="container">
+        <!-- Map Canvas -->
+        <div id="map">
+            <!-- Overlay Legend: Positioned Bottom-Left inside Map -->
+            <div id="map-legend" class="map-legend">
+                <div class="legend-title">Suitability Level</div>
+                <div><span class="legend-color lowest"></span> 0.0 - 2.0 (Restricted)</div>
+                <div><span class="legend-color low"></span> 2.0 - 4.0 (Low)</div>
+                <div><span class="legend-color moderate"></span> 4.0 - 6.0 (Moderate)</div>
+                <div><span class="legend-color high"></span> 6.0 - 8.0 (High)</div>
+                <div><span class="legend-color highest"></span> 8.0 - 10.0 (Prime)</div>
+            </div>
+        </div>
 
-    <!-- Legend for raster layers -->
-    <div id="map-legend" class="map-legend" aria-hidden="false">
-      <div><span class="legend-color lowest" aria-hidden="true"></span> Lowest Potential</div>
-      <div><span class="legend-color low" aria-hidden="true"></span> Low Potential</div>
-      <div><span class="legend-color moderate" aria-hidden="true"></span> Moderate Potential</div>
-      <div><span class="legend-color high" aria-hidden="true"></span> High Potential</div>
-      <div><span class="legend-color highest" aria-hidden="true"></span> Highest Potential</div>
+        <!-- Right Side Dashboard -->
+        <div id="dashboard" class="dashboard-panel">
+            <!-- ADRA Branding Header -->
+            <div class="header-branding">
+                <img src="https://adrasom.org/wp-content/uploads/2021/04/ADRA-Logo-Horizontal.png" alt="ADRA Somalia" style="height: 35px; margin-bottom: 10px; filter: brightness(0) invert(1);">
+                <h2>Decision Support System</h2>
+            </div>
+
+            <!-- Orchestration Module (GPS & Reset) -->
+            <div class="module">
+                <h3>Autonomous Orchestration</h3>
+                <div class="button-grid">
+                    <button id="gps-btn" class="btn btn-secondary">🛰️ GPS Auto-Detect</button>
+                    <button id="refresh-view-btn" class="btn">🔄 Reset Map View</button>
+                    <button id="print-report-btn" class="btn btn-dark" style="grid-column: span 2; margin-top:5px;">📄 Export Site Technical Dossier</button>
+                </div>
+                <p id="search-status" class="status-text"></p>
+            </div>
+
+            <!-- Analysis Mode & Agent Insight -->
+            <div class="module">
+                <div class="tabs">
+                    <button id="site-tab" class="tab-btn active">📍 Site Analysis</button>
+                    <button id="state-tab" class="tab-btn">🗺️ Regional View</button>
+                </div>
+                <div id="agent-notification" class="agent-box">
+                    <i class="fas fa-robot"></i> <strong>Agent Insight:</strong> <span id="agent-insight">Ready for spatial input. Click map or use GPS.</span>
+                </div>
+            </div>
+
+            <div id="loading" class="loading">Orchestrating GIS Pipeline...</div>
+
+            <!-- Project Matching Wizard -->
+            <div class="module" id="wizard-module">
+                <h3>Project Matching Wizard</h3>
+                <div id="wizard-suggestion" class="small-insight" style="display:none; margin-bottom:12px;"></div>
+                <div id="wizard-container" class="wizard-card">
+                    <div id="wizard-step-content">
+                        <p class="muted small">Select a coordinate to unlock hardware recommendations.</p>
+                    </div>
+                </div>
+                <div id="wizard-results" class="hidden result-box"></div>
+            </div>
+
+            <!-- Site Results Section -->
+            <div id="site-report" class="report-section">
+                <div class="module">
+                    <div class="gauge-container">
+                        <div class="gauge-wrapper">
+                            <canvas id="solarGauge"></canvas>
+                            <div class="gauge-center-text">
+                                <span class="value" id="val-solar">0.0</span>
+                                <span class="label">Solar</span>
+                            </div>
+                        </div>
+                        <div class="gauge-wrapper">
+                            <canvas id="windGauge"></canvas>
+                            <div class="gauge-center-text">
+                                <span class="value" id="val-wind">0.0</span>
+                                <span class="label">Wind</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="module">
+                    <h3>Technical Characteristics</h3>
+                    <div class="grid-metrics">
+                        <div class="metric"><span>Coordinate</span><p id="report-sub">N/A</p></div>
+                        <div class="metric"><span>Region</span><p id="state-name-display">N/A</p></div>
+                        <div class="metric"><span>Terrain Slope</span><p id="mean-slope">N/A</p></div>
+                        <div class="metric"><span>Solar GHI</span><p id="mean-ghi">N/A</p></div>
+                        <div class="metric"><span>Wind Speed</span><p id="mean-wind-speed">N/A</p></div>
+                        <div class="metric"><span>Wind WPD</span><p id="mean-wpd">N/A</p></div>
+                        <div class="metric highlight"><span>LCOE Solar</span><p id="lcoe-solar">N/A</p></div>
+                        <div class="metric highlight"><span>LCOE Wind</span><p id="lcoe-wind">N/A</p></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Regional Results Section -->
+            <div id="state-report" class="report-section hidden">
+                <div class="module">
+                    <label class="small">Jump to Federal State:</label>
+                    <select id="stateDropdown" class="adra-select">
+                        <option value="">Select State...</option>
+                        <option value="Awdal">Awdal</option>
+                        <option value="Bakool">Bakool</option>
+                        <option value="Banadir">Banadir</option>
+                        <option value="Bari">Bari</option>
+                        <option value="Galgaduud">Galgaduud</option>
+                        <option value="Gedo">Gedo</option>
+                        <option value="Hiraan">Hiraan</option>
+                        <option value="Mudug">Mudug</option>
+                    </select>
+                </div>
+                <div class="module">
+                    <div class="grid-metrics">
+                        <div class="metric"><span>High Suitable (Solar)</span><p id="solar-area-state">N/A</p></div>
+                        <div class="metric"><span>High Suitable (Wind)</span><p id="wind-area-state">N/A</p></div>
+                    </div>
+                    <div class="gauge-container" style="margin-top:20px;">
+                        <div class="gauge-wrapper">
+                            <canvas id="solarGaugeState"></canvas>
+                            <div class="gauge-center-text">
+                                <span class="value" id="val-solar-state">0.0</span>
+                                <span class="label">Solar</span>
+                            </div>
+                        </div>
+                        <div class="gauge-wrapper">
+                            <canvas id="windGaugeState"></canvas>
+                            <div class="gauge-center-text">
+                                <span class="value" id="val-wind-state">0.0</span>
+                                <span class="label">Wind</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- Dashboard Panel -->
-    <div id="dashboard" class="dashboard-panel" role="region" aria-label="Dashboard">
-      <!-- Admin -->
-      <div class="module">
-        <h3>Admin Tools</h3>
-        <button id="refresh-view-btn" class="btn">🔄 Refresh</button>
-        <p id="refresh-status" class="muted small"></p>
-      </div>
-
-      <!-- Mode Tabs -->
-      <div class="module">
-        <h3>Report Mode</h3>
-        <div class="tabs" role="tablist" aria-label="Report mode">
-          <button id="site-tab" class="tab-btn active" role="tab" aria-selected="true">📍 Site (Pixel)</button>
-          <button id="state-tab" class="tab-btn" role="tab" aria-selected="false">🗺️ Regional (State)</button>
-        </div>
-      </div>
-
-      <!-- New: Questionnaire Module -->
-      <div class="module">
-        <h3>Solar Applications Questionnaire</h3>
-        <button id="questionnaire-btn" class="btn">Start</button>
-        <div id="questionnaire-section" style="display:none;">
-          <div id="questionnaire-form"></div>
-          <div id="questionnaire-results"></div>
-        </div>
-      </div>
-
-      <!-- Report Header -->
-      <div class="module">
-        <h2 id="report-header">Suitability Report: <span id="report-sub">Click on map</span></h2>
-        <div id="loading" class="loading">Loading...</div>
-      </div>
-
-      <!-- Site Report Section -->
-      <div id="site-report" class="report-section">
-        <div class="module">
-          <h3>Site Scores</h3>
-          <!-- ADD ID HERE -->
-          <div id="site-solar-area-metric" class="metric">
-            <span>Solar Highly Suitable Area (km²)</span><p id="solar-area">N/A</p>
-          </div>
-          <!-- ADD ID HERE -->
-          <div id="site-wind-area-metric" class="metric">
-            <span>Wind Highly Suitable Area (km²)</span><p id="wind-area">N/A</p>
-          </div>
-          <div class="gauge-container">
-            <div class="gauge">
-              <canvas id="solarGauge"></canvas>
-              <p>Solar Suitability</p>
-              <p id="solar-gauge-value" class="gauge-value">0.0</p>
-            </div>
-            <div class="gauge">
-              <canvas id="windGauge"></canvas>
-              <p>Wind Suitability</p>
-              <p id="wind-gauge-value" class="gauge-value">0.0</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- REPLACE THIS ENTIRE MODULE IN index.html -->
-        <div class="module">
-          <h3 id="characteristics-title-site">Site Characteristics</h3>
-          <div class="metric"><span>Mean GHI (kWh/m²/day)</span><p id="mean-ghi">N/A</p></div>
-          <div class="metric"><span>Mean Wind Speed (m/s)</span><p id="mean-wind-speed">N/A</p></div>
-          <div class="metric"><span>Mean WPD (W/m²)</span><p id="mean-wpd">N/A</p></div>
-          <!-- This line with id="mean-slope" is required -->
-          <div class="metric"><span>Slope (°)</span><p id="mean-slope">N/A</p></div>
-        </div>
-
-        <div class="module">
-          <h3>Techno-Economic Estimates (Site)</h3>
-          <div class="metric"><span>LCOE Solar (USD/kWh)</span><p id="lcoe-solar">N/A</p></div>
-          <div class="metric"><span>LCOE Wind (USD/kWh)</span><p id="lcoe-wind">N/A</p></div>
-        </div>
-      </div>
-
-      <!-- State Report Section -->
-      <div id="state-report" class="report-section hidden">
-        <div class="module">
-          <h3>Regional Scores</h3>
-          <div class="metric"><span>Solar Highly Suitable Area (km²)</span><p id="solar-area-state">N/A</p></div>
-          <div class="metric"><span>Wind Highly Suitable Area (km²)</span><p id="wind-area-state">N/A</p></div>
-          <div class="gauge-container">
-            <div class="gauge">
-              <canvas id="solarGaugeState"></canvas>
-              <p>Solar Suitability</p>
-              <p id="solar-gauge-value-state" class="gauge-value">0.0</p>
-            </div>
-            <div class="gauge">
-              <canvas id="windGaugeState"></canvas>
-              <p>Wind Suitability</p>
-              <p id="wind-gauge-value-state" class="gauge-value">0.0</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- REPLACE THIS ENTIRE MODULE IN index.html -->
-        <div class="module">
-          <h3 id="characteristics-title-state">Regional Characteristics</h3>
-          <div class="metric"><span>Mean GHI (kWh/m²/day)</span><p id="mean-ghi-state">N/A</p></div>
-          <div class="metric"><span>Mean Wind Speed (m/s)</span><p id="mean-wind-speed-state">N/A</p></div>
-          <div class="metric"><span>Mean WPD (W/m²)</span><p id="mean-wpd-state">N/A</p></div>
-          <!-- This line with id="mean-slope-state" is required -->
-          <div class="metric"><span>Mean Slope (°)</span><p id="mean-slope-state">N/A</p></div>
-        </div>
-
-        <div class="module">
-          <h3>Techno-Economic Estimates (Regional)</h3>
-          <div class="metric"><span>LCOE Solar (USD/kWh)</span><p id="lcoe-solar-state">N/A</p></div>
-          <div class="metric"><span>LCOE Wind (USD/kWh)</span><p id="lcoe-wind-state">N/A</p></div>
-        </div>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- Scripts - Chart.js + Plugins first -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-doughnutlabel@1.0.3/dist/chartjs-plugin-doughnutlabel.min.js"></script>
-
-  <!-- Leaflet & helpers -->
-  <script src="js/leaflet.js"></script>
-  <script src="js/leaflet-hash.js"></script>
-
-  <!-- App scripts -->
-  <script src="js/layerManager.js"></script>
-  <script src="js/dashboard.js"></script>
-  <script src="js/map.js"></script>
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="js/leaflet.js"></script>
+    <script src="js/layerManager.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script src="js/map.js"></script>
 </body>
 </html>

@@ -1,0 +1,205 @@
+/* Base */
+body {
+  margin: 0;
+  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #f0f2f5;
+  color: #333;
+}
+
+#container {
+  display: flex;
+  height: 100vh;
+}
+
+/* Map */
+#map {
+  width: 70%;
+  height: 100%;
+  background: #f0f2f5;
+  position: relative;
+  z-index: 1;
+}
+
+/* Map Legend */
+.map-legend {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 10px 12px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  font-size: 0.85rem;
+  line-height: 1.6;
+  z-index: 1000;
+}
+
+.map-legend div {
+  display: flex;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.map-legend div:last-child {
+  margin-bottom: 0;
+}
+
+.legend-color {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  margin-right: 8px;
+  border-radius: 3px;
+  border: 1px solid #ccc;
+}
+
+.legend-color.lowest   { background: #3f007d; }  /* Lowest Potential */
+.legend-color.low      { background: #2c7ef7; }
+.legend-color.moderate { background: #7fff00; }
+.legend-color.high     { background: #ff6600; }
+.legend-color.highest  { background: #b30000; }
+
+/* Right panel */
+.dashboard-panel {
+  width: 30%;
+  background: #fff;
+  padding: 20px;
+  box-shadow: -2px 0 8px rgba(0,0,0,0.08);
+  border-radius: 12px 0 0 12px;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  z-index: 2;
+}
+
+.dashboard-panel h2 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: #222;
+}
+
+.module {
+  background: #fafafa;
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.module h3 {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #444;
+}
+
+.metric {
+  background: #fff;
+  padding: 10px;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+  margin-bottom: 8px;
+}
+
+.metric span {
+  display: block;
+  font-size: 0.85rem;
+  color: #777;
+}
+
+.metric p {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 6px 0 0;
+  color: #111;
+}
+
+.loading {
+  display: none;
+  text-align: center;
+  font-style: italic;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.state-selector {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.state-selector select {
+  flex: 1;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.state-selector button, .btn {
+  background: #2196F3;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.state-selector button:hover, .btn:hover {
+  background: #1976D2;
+}
+
+.muted { color: #666; }
+.small { font-size: 0.85rem; }
+
+/* Tabs */
+.tabs { display: flex; gap: 8px; align-items: center; }
+.tab-btn {
+  background: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 6px 10px;
+  margin-right: 4px;
+  cursor: pointer;
+}
+.tab-btn.active {
+  background: #2196F3;
+  color: #fff;
+  border-color: #1976D2;
+}
+
+/* Report sections */
+.report-section { margin-top: 10px; }
+.report-section.hidden { display: none; }
+
+/* Gauges */
+.gauge-container {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  margin: 12px 0;
+  flex-wrap: wrap;
+}
+
+.gauge { text-align: center; width: 48%; min-width: 140px; }
+.gauge canvas { width: 100%; height: auto; }
+.gauge-value { font-size: 1.1rem; font-weight: 700; color: #333; margin: 4px 0 0; }
+
+/* Layer controls mini */
+.layer-checks { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+
+/* Responsive */
+@media (max-width: 900px) {
+  #container { flex-direction: column; }
+  #map, .dashboard-panel { width: 100%; }
+  .dashboard-panel { height: 40vh; border-radius: 0; }
+  .gauge { width: 48%; }
+}
+
+/* Small accessibility tweak: focus */
+.tab-btn:focus, .btn:focus, select:focus, input:focus { outline: 2px solid #1976D2; outline-offset: 2px; }
+
+/* Simple fade transition when switching reports */
+.report-section { transition: opacity 180ms ease-in-out; }
+.report-section.hidden { opacity: 0; pointer-events: none; }

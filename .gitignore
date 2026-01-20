@@ -1,0 +1,10 @@
+﻿__pycache__/
+*.pyc
+dss_2.0/
+.env
+.vscode/
+solar_tiles/
+wind_tiles/
+backend/data/rasters/
+backend/app/__pycache__
+frontend/resources

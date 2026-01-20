@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Somalia Renewable Energy DSS</title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="css/leaflet.css">
+  <link rel="stylesheet" href="css/fontawesome-all.min.css">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div id="container">
+    <!-- Map -->
+    <div id="map"></div>
+
+    <!-- Legend for raster layers -->
+    <div id="map-legend" class="map-legend" aria-hidden="false">
+      <div><span class="legend-color lowest" aria-hidden="true"></span> Lowest Potential</div>
+      <div><span class="legend-color low" aria-hidden="true"></span> Low Potential</div>
+      <div><span class="legend-color moderate" aria-hidden="true"></span> Moderate Potential</div>
+      <div><span class="legend-color high" aria-hidden="true"></span> High Potential</div>
+      <div><span class="legend-color highest" aria-hidden="true"></span> Highest Potential</div>
+    </div>
+
+    <!-- Dashboard Panel -->
+    <div id="dashboard" class="dashboard-panel" role="region" aria-label="Dashboard">
+      <!-- Admin -->
+      <div class="module">
+        <h3>Admin Tools</h3>
+        <button id="refresh-view-btn" class="btn">🔄 Refresh</button>
+        <p id="refresh-status" class="muted small"></p>
+      </div>
+
+      <!-- Mode Tabs -->
+      <div class="module">
+        <h3>Report Mode</h3>
+        <div class="tabs" role="tablist" aria-label="Report mode">
+          <button id="site-tab" class="tab-btn active" role="tab" aria-selected="true">📍 Site (Pixel)</button>
+          <button id="state-tab" class="tab-btn" role="tab" aria-selected="false">🗺️ Regional (State)</button>
+        </div>
+      </div>
+
+      <!-- New: Questionnaire Module -->
+      <div class="module">
+        <h3>Solar Applications Questionnaire</h3>
+        <button id="questionnaire-btn" class="btn">Start</button>
+        <div id="questionnaire-section" style="display:none;">
+          <div id="questionnaire-form"></div>
+          <div id="questionnaire-results"></div>
+        </div>
+      </div>
+
+      <!-- Report Header -->
+      <div class="module">
+        <h2 id="report-header">Suitability Report: <span id="report-sub">Click on map</span></h2>
+        <div id="loading" class="loading">Loading...</div>
+      </div>
+
+      <!-- Site Report Section -->
+      <div id="site-report" class="report-section">
+        <div class="module">
+          <h3>Site Scores</h3>
+          <!-- ADD ID HERE -->
+          <div id="site-solar-area-metric" class="metric">
+            <span>Solar Highly Suitable Area (km²)</span><p id="solar-area">N/A</p>
+          </div>
+          <!-- ADD ID HERE -->
+          <div id="site-wind-area-metric" class="metric">
+            <span>Wind Highly Suitable Area (km²)</span><p id="wind-area">N/A</p>
+          </div>
+          <div class="gauge-container">
+            <div class="gauge">
+              <canvas id="solarGauge"></canvas>
+              <p>Solar Suitability</p>
+              <p id="solar-gauge-value" class="gauge-value">0.0</p>
+            </div>
+            <div class="gauge">
+              <canvas id="windGauge"></canvas>
+              <p>Wind Suitability</p>
+              <p id="wind-gauge-value" class="gauge-value">0.0</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- REPLACE THIS ENTIRE MODULE IN index.html -->
+        <div class="module">
+          <h3 id="characteristics-title-site">Site Characteristics</h3>
+          <div class="metric"><span>Mean GHI (kWh/m²/day)</span><p id="mean-ghi">N/A</p></div>
+          <div class="metric"><span>Mean Wind Speed (m/s)</span><p id="mean-wind-speed">N/A</p></div>
+          <div class="metric"><span>Mean WPD (W/m²)</span><p id="mean-wpd">N/A</p></div>
+          <!-- This line with id="mean-slope" is required -->
+          <div class="metric"><span>Slope (°)</span><p id="mean-slope">N/A</p></div>
+        </div>
+
+        <div class="module">
+          <h3>Techno-Economic Estimates (Site)</h3>
+          <div class="metric"><span>LCOE Solar (USD/kWh)</span><p id="lcoe-solar">N/A</p></div>
+          <div class="metric"><span>LCOE Wind (USD/kWh)</span><p id="lcoe-wind">N/A</p></div>
+        </div>
+      </div>
+
+      <!-- State Report Section -->
+      <div id="state-report" class="report-section hidden">
+        <div class="module">
+          <h3>Regional Scores</h3>
+          <div class="metric"><span>Solar Highly Suitable Area (km²)</span><p id="solar-area-state">N/A</p></div>
+          <div class="metric"><span>Wind Highly Suitable Area (km²)</span><p id="wind-area-state">N/A</p></div>
+          <div class="gauge-container">
+            <div class="gauge">
+              <canvas id="solarGaugeState"></canvas>
+              <p>Solar Suitability</p>
+              <p id="solar-gauge-value-state" class="gauge-value">0.0</p>
+            </div>
+            <div class="gauge">
+              <canvas id="windGaugeState"></canvas>
+              <p>Wind Suitability</p>
+              <p id="wind-gauge-value-state" class="gauge-value">0.0</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- REPLACE THIS ENTIRE MODULE IN index.html -->
+        <div class="module">
+          <h3 id="characteristics-title-state">Regional Characteristics</h3>
+          <div class="metric"><span>Mean GHI (kWh/m²/day)</span><p id="mean-ghi-state">N/A</p></div>
+          <div class="metric"><span>Mean Wind Speed (m/s)</span><p id="mean-wind-speed-state">N/A</p></div>
+          <div class="metric"><span>Mean WPD (W/m²)</span><p id="mean-wpd-state">N/A</p></div>
+          <!-- This line with id="mean-slope-state" is required -->
+          <div class="metric"><span>Mean Slope (°)</span><p id="mean-slope-state">N/A</p></div>
+        </div>
+
+        <div class="module">
+          <h3>Techno-Economic Estimates (Regional)</h3>
+          <div class="metric"><span>LCOE Solar (USD/kWh)</span><p id="lcoe-solar-state">N/A</p></div>
+          <div class="metric"><span>LCOE Wind (USD/kWh)</span><p id="lcoe-wind-state">N/A</p></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Scripts - Chart.js + Plugins first -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-doughnutlabel@1.0.3/dist/chartjs-plugin-doughnutlabel.min.js"></script>
+
+  <!-- Leaflet & helpers -->
+  <script src="js/leaflet.js"></script>
+  <script src="js/leaflet-hash.js"></script>
+
+  <!-- App scripts -->
+  <script src="js/layerManager.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script src="js/map.js"></script>
+</body>
+</html>

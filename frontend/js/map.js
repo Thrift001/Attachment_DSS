@@ -199,6 +199,9 @@
   function initMap() {
     map = L.map('map', { zoomControl: false }).setView(initialView.center, initialView.zoom);
     
+ // Add this to ensure map fills the encased container properly
+    setTimeout(() => { map.invalidateSize(); }, 200);
+
     L.control.zoom({ position: 'bottomright' }).addTo(map);
     
     // Muted Base Layer to make ADRA Overlays stand out

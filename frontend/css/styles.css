@@ -1,6 +1,7 @@
 /* 
-   SOMALIA DSS - ADRA BRANDED STYLESHEET (FULL)
-   Palette: Sea Green #065C53 | Action Gold #FFC82E
+   SOMALIA DSS - FULL ENCASEMENT STYLESHEET (UNABRIDGED)
+   ADRA BRANDED: Sea Green #065C53 | Action Gold #FFC82E
+   2026 PROTOCOL: Instrument Encasement & Data-First Map Tinting
 */
 
 :root {
@@ -12,96 +13,110 @@
   --border: #e2e8f0;
 }
 
-body {
-  margin: 0;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  background: var(--bg-slate);
-  color: var(--text-dark);
-  overflow: hidden;
+body { 
+  margin: 0; 
+  font-family: 'Inter', system-ui, -apple-system, sans-serif; 
+  background: var(--bg-slate); 
+  overflow: hidden; 
 }
 
-#container { display: flex; height: 100vh; }
-#map { width: 70%; height: 100%; background: #cbd5e1; position: relative; z-index: 1; }
+#container { 
+  display: flex; 
+  height: 100vh; 
+  width: 100vw; 
+}
 
-/* Legend Repaired: Pin to Bottom Left of Map */
+/* --- MAP VIEWPORT: ADRA INSTRUMENT ENCASEMENT --- */
+#map-viewport {
+    position: relative;
+    width: 70%;
+    height: 100vh;
+    flex-shrink: 0;
+    
+    /* The Encasement Frame */
+    background: var(--adra-green); 
+    padding: 12px; 
+    box-sizing: border-box;
+    
+    /* Depth and Dimension */
+    box-shadow: inset 0 0 40px rgba(0,0,0,0.4);
+    border-right: 1px solid rgba(255,255,255,0.1);
+}
+
+#map { 
+    width: 100%; 
+    height: 100%; 
+    border-radius: 8px; /* Rounded corners inside the green frame */
+    box-shadow: 0 0 15px rgba(0,0,0,0.5);
+    
+    /* THE TINT: Desaturates the base map so suitability overlays stand out */
+    filter: saturate(0.7) brightness(0.9) contrast(1.1);
+}
+
+/* Brand-Matching Leaflet Controls */
+.leaflet-bar a {
+    background-color: var(--adra-green) !important;
+    color: var(--adra-gold) !important;
+    border-bottom: 1px solid rgba(255,255,255,0.1) !important;
+}
+.leaflet-bar a:hover {
+    background-color: #04463f !important;
+}
+
+/* REPAIRED LEGEND: Modern Glassmorphism Overlay */
 .map-legend {
     position: absolute;
-    bottom: 30px;
-    left: 20px;
-    background: white;
+    bottom: 45px;
+    left: 35px;
+    background: rgba(6, 92, 83, 0.9); /* Translucent ADRA Green */
+    backdrop-filter: blur(1.2px); /* Modern 2026 frosted effect */
+    -webkit-backdrop-filter: blur(1.2px);
+    color: white;
     padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    border-radius: 10px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
     z-index: 1000;
-    font-size: 0.75rem;
-    border-left: 5px solid var(--adra-green);
+    font-size: 0.7rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-top: 4px solid var(--adra-gold);
 }
 
-.legend-title { font-weight: 800; margin-bottom: 8px; color: var(--adra-green); text-transform: uppercase; }
-.legend-color { display: inline-block; width: 12px; height: 12px; margin-right: 10px; border-radius: 2px; }
+.legend-title { 
+    font-weight: 800; 
+    margin-bottom: 10px; 
+    color: var(--adra-gold); 
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+}
+
+.legend-color { 
+    display: inline-block; 
+    width: 14px; 
+    height: 14px; 
+    margin-right: 12px; 
+    border-radius: 3px; 
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
 .legend-color.lowest { background: #3f007d; }
 .legend-color.low { background: #2c7ef7; }
 .legend-color.moderate { background: #7fff00; }
 .legend-color.high { background: #ff6600; }
-.legend-color.highest { background: #b30000; }
+.legend-color.highest { background: #b30000; box-shadow: 0 0 8px var(--adra-gold); }
 
-/* Dashboard Panel */
+/* --- DASHBOARD PANEL: SCROLLABLE RIGHT --- */
 .dashboard-panel {
   width: 30%;
+  height: 100vh;
   background: white;
-  box-shadow: -4px 0 25px rgba(0,0,0,0.1);
   display: flex;
   flex-direction: column;
   overflow-y: auto;
-  z-index: 2;
+  scrollbar-width: thin;
+  scrollbar-color: var(--adra-green) transparent;
 }
 
-.header-branding { padding: 20px; background: var(--adra-green); color: white; }
-.header-branding h2 { margin: 0; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px; border-left: 4px solid var(--adra-gold); padding-left: 12px; }
-
-.module { padding: 15px; border-bottom: 1px solid var(--border); }
-.module h3 { font-size: 0.75rem; text-transform: uppercase; color: var(--adra-green); margin-bottom: 12px; font-weight: 800; }
-
-.button-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.btn { padding: 12px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; font-size: 0.75rem; transition: 0.3s; text-align: center; }
-.btn-secondary { background: var(--adra-gold); color: var(--adra-green); }
-.btn-dark { background: var(--text-dark); color: white; }
-.btn:hover { transform: translateY(-1px); filter: brightness(1.1); }
-
-.grid-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.metric { background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid var(--border); text-align: center; }
-.metric span { font-size: 0.65rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; display: block; }
-.metric p { font-size: 1rem; margin: 4px 0; font-weight: 800; color: var(--adra-green); }
-.metric.highlight { border-color: var(--adra-gold); background: #fffdf5; }
-
-/* Premium Gauge Styling */
-.gauge-container { display: flex; justify-content: space-around; padding: 10px 0; }
-.gauge-wrapper { position: relative; width: 140px; height: 100px; }
-.gauge-center-text { position: absolute; top: 60%; left: 50%; transform: translate(-50%, -50%); text-align: center; width: 100%; }
-.gauge-center-text .value { font-size: 1.6rem; font-weight: 900; color: var(--adra-green); display: block; line-height: 1; }
-.gauge-center-text .label { font-size: 0.65rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
-
-/* Wizard Styling */
-.wizard-card { background: #f1f5f9; padding: 12px; border-radius: 8px; border-top: 3px solid var(--adra-gold); }
-.wizard-option-btn { 
-    display: block; width: 100%; text-align: left; padding: 12px; margin-bottom: 8px; 
-    border: 1px solid var(--border); border-left: 5px solid var(--adra-gold); 
-    border-radius: 6px; background: white; cursor: pointer; font-size: 0.85rem; font-weight: 600; 
-}
-.wizard-option-btn:hover { background: var(--adra-green); color: white; }
-.result-box { background: var(--adra-green); color: white; padding: 15px; border-radius: 8px; margin-top: 10px; font-size: 0.85rem; line-height: 1.5; border-bottom: 5px solid var(--adra-gold); }
-.small-insight { background: #fffbeb; padding: 10px; border-radius: 6px; font-size: 0.8rem; border-left: 4px solid var(--adra-gold); margin-bottom: 15px; color: #92400e; line-height: 1.4; }
-
-.tabs { display: flex; background: #f1f5f9; padding: 4px; border-radius: 8px; margin-bottom: 10px; }
-.tab-btn { flex: 1; padding: 8px; border: none; border-radius: 6px; cursor: pointer; background: transparent; color: var(--text-muted); font-weight: bold; font-size: 0.75rem; }
-.tab-btn.active { background: white; color: var(--adra-green); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-
-.agent-box { background: #f0fdf4; border: 1px solid #bbf7d0; padding: 12px; border-radius: 8px; font-size: 0.8rem; color: #166534; line-height: 1.4; margin-top: 10px; }
-.loading { display: none; text-align: center; font-weight: bold; color: var(--adra-green); padding: 20px; }
-.hidden { display: none; }
-.adra-select { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid var(--border); font-weight: bold; color: var(--adra-green); }
-
-/* Clever Branding Styles */
+/* Branding Section */
 .header-branding {
     display: flex;
     flex-direction: column;
@@ -110,40 +125,78 @@ body {
     background: var(--adra-green);
     text-align: center;
 }
-
 .logo-container {
-    background: white; /* Creates a clean white circle/base for the green logo */
+    background: white;
     padding: 10px;
     border-radius: 50%;
-    width: 70px;
-    height: 70px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    width: 65px; height: 65px;
+    display: flex; align-items: center; justify-content: center;
     margin-bottom: 15px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-    border: 2px solid var(--adra-gold); /* Tie in the gold branding */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    border: 2px solid var(--adra-gold);
 }
+#adra-logo { width: 100%; height: auto; max-height: 48px; object-fit: contain; }
+.header-branding h2 { color: white; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px; margin: 0; }
 
-#adra-logo {
-    width: 100%;
-    height: auto;
-    max-height: 50px;
-    object-fit: contain;
-}
+.module { padding: 15px; border-bottom: 1px solid var(--border); }
+.module h3 { font-size: 0.75rem; text-transform: uppercase; color: var(--adra-green); margin-bottom: 10px; font-weight: 800; }
 
-.header-branding h2 {
-    color: white;
-    font-size: 1.2rem;
-    font-weight: 800;
-    margin: 0;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    border: none; /* Removed the side-border for a cleaner centered look */
+/* Buttons & Navigation */
+.button-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.btn { padding: 12px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; font-size: 0.75rem; transition: 0.3s; text-align: center; }
+.btn-secondary { background: var(--adra-gold); color: var(--adra-green); }
+.btn-dark { background: var(--text-dark); color: white; }
+
+.tabs { display: flex; background: #f1f5f9; padding: 4px; border-radius: 8px; margin-bottom: 10px; }
+.tab-btn { flex: 1; padding: 8px; border: none; border-radius: 6px; cursor: pointer; background: transparent; color: var(--text-muted); font-weight: bold; font-size: 0.75rem; }
+.tab-btn.active { background: white; color: var(--adra-green); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+
+/* Metric Cards */
+.grid-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.metric { background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid var(--border); text-align: center; }
+.metric span { font-size: 0.65rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; display: block; }
+.metric p { font-size: 0.95rem; margin: 4px 0; font-weight: 800; color: var(--adra-green); }
+.metric.highlight { border-color: var(--adra-gold); background: #fffdf5; }
+
+/* Premium Gauge Spacing */
+.gauge-container { display: flex; justify-content: space-around; padding: 20px 0; background: #fff; border-radius: 12px; }
+.gauge-wrapper { position: relative; width: 140px; height: 100px; }
+.gauge-center-text { position: absolute; top: 55%; left: 50%; transform: translate(-50%, -50%); text-align: center; width: 100%; }
+.gauge-center-text .value { font-size: 1.6rem; font-weight: 900; color: var(--adra-green); display: block; line-height: 1; }
+.gauge-center-text .label { font-size: 0.65rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+
+/* Narrative Styling */
+.project-narrative { background: var(--bg-slate); border-top: 2px solid var(--adra-green); padding: 25px 20px; }
+.project-narrative h3 { color: var(--adra-green); margin-bottom: 15px; }
+.project-narrative p { font-size: 0.85rem; line-height: 1.7; text-align: justify; margin-bottom: 15px; color: var(--text-dark); }
+.narrative-divider { height: 2px; width: 40px; background: var(--adra-gold); margin-bottom: 15px; }
+
+/* Wizard Styling */
+.wizard-card { background: #f1f5f9; padding: 12px; border-radius: 8px; border-top: 3px solid var(--adra-gold); }
+.wizard-option-btn { 
+    display: block; width: 100%; text-align: left; padding: 12px; margin-bottom: 8px; 
+    border: 1px solid var(--border); border-left: 4px solid var(--adra-gold); 
+    border-radius: 6px; background: white; cursor: pointer; font-size: 0.85rem; font-weight: 600; 
 }
+.wizard-option-btn:hover { background: var(--adra-green); color: white; border-left-color: white; }
+.result-box { background: var(--adra-green); color: white; padding: 15px; border-radius: 8px; margin-top: 10px; font-size: 0.85rem; line-height: 1.5; border-bottom: 5px solid var(--adra-gold); }
+.small-insight { background: #fffbeb; padding: 10px; border-radius: 6px; font-size: 0.8rem; border-left: 4px solid var(--adra-gold); margin-bottom: 15px; color: #92400e; line-height: 1.4; }
+
+.agent-box { background: #f0fdf4; border: 1px solid #bbf7d0; padding: 12px; border-radius: 8px; font-size: 0.8rem; color: #166534; line-height: 1.4; margin-top: 10px; }
+.loading { display: none; text-align: center; padding: 20px; font-weight: bold; color: var(--adra-green); }
+.hidden { display: none; }
+.adra-select { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid var(--border); font-weight: bold; color: var(--adra-green); }
+
+/* Scrollbar Customization */
+.dashboard-panel::-webkit-scrollbar { width: 8px; }
+.dashboard-panel::-webkit-scrollbar-track { background: var(--bg-slate); }
+.dashboard-panel::-webkit-scrollbar-thumb { background: var(--adra-green); border-radius: 4px; }
+
 @media print {
   .dashboard-panel { width: 100% !important; height: auto !important; overflow: visible; }
-  #map { height: 350px; width: 100% !important; border: 1px solid #eee; }
+  #map-viewport { width: 100% !important; padding: 0; border: none; }
+  #map { height: 350px; width: 100% !important; border: 1px solid #eee; filter: none; }
   .btn, .tabs, .map-legend, .adra-select, #wizard-module { display: none !important; }
   .report-section { display: block !important; }
+  .project-narrative { background: white; border: none; }
 }

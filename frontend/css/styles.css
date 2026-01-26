@@ -192,6 +192,32 @@ body {
 .dashboard-panel::-webkit-scrollbar-track { background: var(--bg-slate); }
 .dashboard-panel::-webkit-scrollbar-thumb { background: var(--adra-green); border-radius: 4px; }
 
+/* Town Icon Marker Styles */
+.town-icon-marker {
+    background: transparent;
+}
+
+.town-icon-base {
+    background: var(--adra-gold);
+    color: var(--adra-green);
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 2px solid var(--adra-green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    transition: transform 0.2s;
+}
+
+.town-icon-base:hover {
+    transform: scale(1.2);
+    background: var(--adra-green);
+    color: var(--adra-gold);
+}
+
 @media print {
   .dashboard-panel { width: 100% !important; height: auto !important; overflow: visible; }
   #map-viewport { width: 100% !important; padding: 0; border: none; }

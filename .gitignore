@@ -6,5 +6,6 @@ dss_2.0/
 solar_tiles/
 wind_tiles/
 backend/data/rasters/
+backend/data/optimized_rasters
 backend/app/__pycache__
 frontend/resources

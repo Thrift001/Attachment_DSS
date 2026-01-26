@@ -1,6 +1,7 @@
 # =========================================================================
 #  DSS BACKEND API (FastAPI) - Production-Ready Version
-#  Integrates SQLAlchemy session pattern and raster sampling.
+#  Integrates SQLAlchemy session pattern, raster sampling, and Demand Centers.
+#  Refactored: January 2026 for ADRA Somalia Decision Support System
 # =========================================================================
 
 import os
@@ -105,6 +106,92 @@ def reproject_point(lon: float, lat: float, target_crs):
 # -------------------------------------------------------------------------
 # API Endpoints
 # -------------------------------------------------------------------------
+
+@app.get("/api/towns")
+def get_major_towns():
+    """
+    Orchestrates GeoJSON for the 6 most influential Somali Hubs.
+    Data verified using World Bank SURP II (2024) and NBS Somalia Population Estimates.
+    Links provide direct access to verified data sources for technical reporting.
+    """
+    towns = {
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "type": "Feature", 
+                "properties": {
+                    "name": "Mogadishu", 
+                    "type": "National Capital", 
+                    "pop": "2,610,483", 
+                    "infra": "Major International Port & Airport",
+                    "source": "World Bank SURP II",
+                    "source_url": "https://projects.worldbank.org/en/projects-operations/project-detail/P170922"
+                }, 
+                "geometry": {"type": "Point", "coordinates": [45.3182, 2.0469]}
+            },
+            {
+                "type": "Feature", 
+                "properties": {
+                    "name": "Hargeisa", 
+                    "type": "Major Economic Hub", 
+                    "pop": "1,200,000", 
+                    "infra": "Inland Logistics & Trade Hub",
+                    "source": "NBS Statistical Yearbook",
+                    "source_url": "https://www.nbs.gov.so/"
+                }, 
+                "geometry": {"type": "Point", "coordinates": [44.0650, 9.5624]}
+            },
+            {
+                "type": "Feature", 
+                "properties": {
+                    "name": "Bosaso", 
+                    "type": "Port City", 
+                    "pop": "700,000", 
+                    "infra": "Primary Maritime Export Hub",
+                    "source": "Puntland NBS Survey",
+                    "source_url": "https://www.nbs.gov.so/"
+                }, 
+                "geometry": {"type": "Point", "coordinates": [49.1816, 11.2842]}
+            },
+            {
+                "type": "Feature", 
+                "properties": {
+                    "name": "Kismayo", 
+                    "type": "Strategic Port City", 
+                    "pop": "183,000", 
+                    "infra": "Deepwater Port Hub",
+                    "source": "World Bank Somalia Urban Profile",
+                    "source_url": "https://projects.worldbank.org/en/projects-operations/project-detail/P170922"
+                }, 
+                "geometry": {"type": "Point", "coordinates": [42.5454, -0.3582]}
+            },
+            {
+                "type": "Feature", 
+                "properties": {
+                    "name": "Baidoa", 
+                    "type": "Regional Agri-Hub", 
+                    "pop": "800,000", 
+                    "infra": "Agricultural Trade Node",
+                    "source": "UN-OCHA Pop. Estimates",
+                    "source_url": "https://data.humdata.org/group/som"
+                }, 
+                "geometry": {"type": "Point", "coordinates": [43.6492, 3.1133]}
+            },
+            {
+                "type": "Feature", 
+                "properties": {
+                    "name": "Garowe", 
+                    "type": "Administrative Capital", 
+                    "pop": "190,000", 
+                    "infra": "Governmental and Logistics Node",
+                    "source": "Puntland NBS Office",
+                    "source_url": "https://www.nbs.gov.so/"
+                }, 
+                "geometry": {"type": "Point", "coordinates": [48.4845, 8.4064]}
+            }
+        ]
+    }
+    return towns
 
 @app.get("/states")
 def get_states(db: Session = Depends(get_db)):

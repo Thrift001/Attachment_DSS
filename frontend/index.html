@@ -17,212 +17,204 @@
     <link rel="stylesheet" href="css/fontawesome-all.min.css">
     <link rel="stylesheet" href="css/styles.css">
 </head>
+
 <body>
-    <div id="container">
+<div id="container">
         
-        <!-- 
-            SECTION: MAP VIEWPORT
-            Architecture: Fixed viewport on the left containing the interactive Leaflet map.
-            The Legend is encased here to remain as a persistent overlay.
-        -->
-        <div id="map-viewport">
-            <div id="map"></div>
-            
-            <!-- SPATIAL LEGEND: Encased within the map domain for logical context -->
-            <div id="map-legend" class="map-legend">
-                <div class="legend-title">Suitability Index</div>
-                <div><span class="legend-color lowest"></span> 0.0 - 2.0 (Restricted)</div>
-                <div><span class="legend-color low"></span> 2.0 - 4.0 (Low)</div>
-                <div><span class="legend-color moderate"></span> 4.0 - 6.0 (Moderate)</div>
-                <div><span class="legend-color high"></span> 6.0 - 8.0 (High)</div>
-                <div><span class="legend-color highest"></span> 8.0 - 10.0 (Prime)</div>
+    <!-- SECTION: MAP VIEWPORT -->
+    <div id="map-viewport">
+        <div id="map"></div>
+        
+        <!-- SPATIAL LEGEND -->
+        <div id="map-legend" class="map-legend">
+            <div class="legend-title">Suitability Index</div>
+            <div><span class="legend-color lowest"></span> 0.0 - 2.0 (Restricted)</div>
+            <div><span class="legend-color low"></span> 2.0 - 4.0 (Low)</div>
+            <div><span class="legend-color moderate"></span> 4.0 - 6.0 (Moderate)</div>
+            <div><span class="legend-color high"></span> 6.0 - 8.0 (High)</div>
+            <div><span class="legend-color highest"></span> 8.0 - 10.0 (Prime)</div>
+        </div>
+    </div>
+
+    <!-- SECTION: DASHBOARD PANEL -->
+    <div id="dashboard" class="dashboard-panel">
+
+        <!-- ✅ BRANDING HEADER (ONLY ADDITION) -->
+        <div class="header-branding">
+            <div class="logo-container">
+                <img src="css/images/logo.png" alt="ADRA Somalia Logo" id="adra-logo">
+            </div>
+            <h2>Decision Support Sytem</h2>
+        </div>
+
+        <!-- MODULE: AUTONOMOUS ORCHESTRATION -->
+        <div class="module">
+            <div class="button-grid">
+                <button id="gps-btn" class="btn btn-secondary">🛰️ GPS Auto-Detect</button>
+                <button id="refresh-view-btn" class="btn">🔄 Reset Map View</button>
+                <button id="print-report-btn"
+                        class="btn btn-dark"
+                        style="grid-column: span 2; margin-top:5px;">
+                    📄 Export Site Technical Dossier
+                </button>
+            </div>
+            <p id="search-status" class="status-text"></p>
+        </div>
+
+        <!-- MODULE: AGENT INSIGHT -->
+        <div class="module">
+            <div class="tabs">
+                <button id="site-tab" class="tab-btn active">📍 Site Analysis</button>
+                <button id="state-tab" class="tab-btn">🗺️ Regional View</button>
+            </div>
+            <div id="agent-notification" class="agent-box">
+                <i class="fas fa-robot"></i>
+                <strong>Agent Insight:</strong>
+                <span id="agent-insight">
+                    Ready for spatial input. Select a location on the map.
+                </span>
             </div>
         </div>
 
-        <!-- 
-            SECTION: DASHBOARD PANEL
-            Architecture: Scrollable right-side panel containing the Decision Engine.
-        -->
-        <div id="dashboard" class="dashboard-panel">
-            
-            <!-- BRANDING HEADER: ADRA Visual Identity -->
-            <div class="header-branding">
-                <div class="logo-container">
-                    <!-- 
-                        LOGO PLACEHOLDER 
-                        INSTRUCTIONS: Replace the src value with your Base64 string or file path.
-                    -->
-                </div>
-                <h2>Decision Support System</h2>
-            </div>
+        <!-- LOADING INDICATOR -->
+        <div id="loading" class="loading">Orchestrating GIS Pipeline...</div>
 
-            <!-- 
-                MODULE: AUTONOMOUS ORCHESTRATION 
-                Functionality: Controls for GPS telemetry and system-wide resets.
-            -->
+        <!-- MODULE: VERIFIED DEMAND CENTERS -->
+        <div id="town-metadata-box" class="module hidden"></div>
+
+        <!-- MODULE: PROJECT MATCHING WIZARD -->
+        <div class="module" id="wizard-module">
+            <h3>Hardware Selection Wizard</h3>
+            <div id="wizard-suggestion"
+                 class="small-insight"
+                 style="display:none; margin-bottom:12px;"></div>
+
+            <div id="wizard-container" class="wizard-card">
+                <div id="wizard-step-content">
+                    <p class="muted small">
+                        Analyze a site to unlock hardware recommendations.
+                    </p>
+                </div>
+            </div>
+            <div id="wizard-results" class="hidden result-box"></div>
+        </div>
+
+        <!-- MODULE: SITE RESULTS -->
+        <div id="site-report" class="report-section">
             <div class="module">
-                <h3>System Orchestration</h3>
-                <div class="button-grid">
-                    <button id="gps-btn" class="btn btn-secondary">🛰️ GPS Auto-Detect</button>
-                    <button id="refresh-view-btn" class="btn">🔄 Reset Map View</button>
-                    <button id="print-report-btn" class="btn btn-dark" style="grid-column: span 2; margin-top:5px;">📄 Export Site Technical Dossier</button>
+                <div class="gauge-container">
+                    <div class="gauge-wrapper">
+                        <canvas id="solarGauge"></canvas>
+                        <div class="gauge-center-text">
+                            <span class="value" id="val-solar">0.0</span>
+                            <span class="label">Solar</span>
+                        </div>
+                    </div>
+
+                    <div class="gauge-wrapper">
+                        <canvas id="windGauge"></canvas>
+                        <div class="gauge-center-text">
+                            <span class="value" id="val-wind">0.0</span>
+                            <span class="label">Wind</span>
+                        </div>
+                    </div>
                 </div>
-                <p id="search-status" class="status-text"></p>
             </div>
 
-            <!-- 
-                MODULE: AGENT INSIGHT 
-                Functionality: Displays real-time reasoning from the 2026 Decision Agent.
-            -->
             <div class="module">
-                <div class="tabs">
-                    <button id="site-tab" class="tab-btn active">📍 Site Analysis</button>
-                    <button id="state-tab" class="tab-btn">🗺️ Regional View</button>
-                </div>
-                <div id="agent-notification" class="agent-box">
-                    <i class="fas fa-robot"></i> <strong>Agent Insight:</strong> <span id="agent-insight">Ready for spatial input. Select a location on the map.</span>
+                <h3>Technical Characteristics</h3>
+                <div class="grid-metrics">
+                    <div class="metric"><span>Coordinate</span><p id="report-sub">N/A</p></div>
+                    <div class="metric"><span>Region</span><p id="state-name-display">N/A</p></div>
+                    <div class="metric"><span>Terrain Slope</span><p id="mean-slope">N/A</p></div>
+                    <div class="metric"><span>Solar GHI</span><p id="mean-ghi">N/A</p></div>
+                    <div class="metric"><span>Wind Speed</span><p id="mean-wind-speed">N/A</p></div>
+                    <div class="metric"><span>Wind WPD</span><p id="mean-wpd">N/A</p></div>
+                    <div class="metric highlight"><span>LCOE Solar</span><p id="lcoe-solar">N/A</p></div>
+                    <div class="metric highlight"><span>LCOE Wind</span><p id="lcoe-wind">N/A</p></div>
                 </div>
             </div>
+        </div>
 
-            <!-- LOADING INDICATOR: Feedback for GIS I/O operations -->
-            <div id="loading" class="loading">Orchestrating GIS Pipeline...</div>
-
-            <!-- 
-                MODULE: VERIFIED DEMAND CENTERS (TOWNS)
-                Logic: This box triggers when a Major Town Icon (World Bank Verified) is clicked.
-                It provides contextual demographic data before energy metrics.
-            -->
-            <div id="town-metadata-box" class="module hidden">
-                <!-- Dynamically populated by dashboard.js upon Town Icon selection -->
+        <!-- MODULE: REGIONAL RESULTS -->
+        <div id="state-report" class="report-section hidden">
+            <div class="module">
+                <label class="small">Jump to Federal State:</label>
+                <select id="stateDropdown" class="adra-select">
+                    <option value="">Select State...</option>
+                    <option value="Awdal">Awdal</option>
+                    <option value="Bakool">Bakool</option>
+                    <option value="Banadir">Banadir</option>
+                    <option value="Bari">Bari</option>
+                    <option value="Galgaduud">Galgaduud</option>
+                    <option value="Gedo">Gedo</option>
+                    <option value="Hiraan">Hiraan</option>
+                    <option value="Mudug">Mudug</option>
+                </select>
             </div>
 
-            <!-- 
-                MODULE: PROJECT MATCHING WIZARD 
-                Logic: Context-aware hardware matching engine based on ADRA project standards.
-            -->
-            <div class="module" id="wizard-module">
-                <h3>Hardware Selection Wizard</h3>
-                <div id="wizard-suggestion" class="small-insight" style="display:none; margin-bottom:12px;"></div>
-                <div id="wizard-container" class="wizard-card">
-                    <div id="wizard-step-content">
-                        <p class="muted small">Analyze a site to unlock hardware recommendations.</p>
+            <div class="module">
+                <div class="grid-metrics">
+                    <div class="metric">
+                        <span>High Suitable Area (Solar)</span>
+                        <p id="solar-area-state">N/A</p>
+                    </div>
+                    <div class="metric">
+                        <span>High Suitable Area (Wind)</span>
+                        <p id="wind-area-state">N/A</p>
                     </div>
                 </div>
-                <div id="wizard-results" class="hidden result-box"></div>
-            </div>
 
-            <!-- 
-                MODULE: SITE RESULTS
-                Metrics: Real-time suitability doughnut gauges and technical statistics.
-            -->
-            <div id="site-report" class="report-section">
-                <div class="module">
-                    <div class="gauge-container">
-                        <div class="gauge-wrapper">
-                            <canvas id="solarGauge"></canvas>
-                            <div class="gauge-center-text">
-                                <span class="value" id="val-solar">0.0</span>
-                                <span class="label">Solar</span>
-                            </div>
-                        </div>
-                        <div class="gauge-wrapper">
-                            <canvas id="windGauge"></canvas>
-                            <div class="gauge-center-text">
-                                <span class="value" id="val-wind">0.0</span>
-                                <span class="label">Wind</span>
-                            </div>
+                <div class="gauge-container" style="margin-top:20px;">
+                    <div class="gauge-wrapper">
+                        <canvas id="solarGaugeState"></canvas>
+                        <div class="gauge-center-text">
+                            <span class="value" id="val-solar-state">0.0</span>
+                            <span class="label">Solar</span>
                         </div>
                     </div>
-                </div>
 
-                <div class="module">
-                    <h3>Technical Characteristics</h3>
-                    <div class="grid-metrics">
-                        <div class="metric"><span>Coordinate</span><p id="report-sub">N/A</p></div>
-                        <div class="metric"><span>Region</span><p id="state-name-display">N/A</p></div>
-                        <div class="metric"><span>Terrain Slope</span><p id="mean-slope">N/A</p></div>
-                        <div class="metric"><span>Solar GHI</span><p id="mean-ghi">N/A</p></div>
-                        <div class="metric"><span>Wind Speed</span><p id="mean-wind-speed">N/A</p></div>
-                        <div class="metric"><span>Wind WPD</span><p id="mean-wpd">N/A</p></div>
-                        <div class="metric highlight"><span>LCOE Solar</span><p id="lcoe-solar">N/A</p></div>
-                        <div class="metric highlight"><span>LCOE Wind</span><p id="lcoe-wind">N/A</p></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 
-                MODULE: REGIONAL RESULTS
-                Logic: High-level administrative summaries for Federal State planning.
-            -->
-            <div id="state-report" class="report-section hidden">
-                <div class="module">
-                    <label class="small">Jump to Federal State:</label>
-                    <select id="stateDropdown" class="adra-select">
-                        <option value="">Select State...</option>
-                        <option value="Awdal">Awdal</option>
-                        <option value="Bakool">Bakool</option>
-                        <option value="Banadir">Banadir</option>
-                        <option value="Bari">Bari</option>
-                        <option value="Galgaduud">Galgaduud</option>
-                        <option value="Gedo">Gedo</option>
-                        <option value="Hiraan">Hiraan</option>
-                        <option value="Mudug">Mudug</option>
-                        
-                    </select>
-                </div>
-                <div class="module">
-                    <div class="grid-metrics">
-                        <div class="metric"><span>High Suitable Area (Solar)</span><p id="solar-area-state">N/A</p></div>
-                        <div class="metric"><span>High Suitable Area (Wind)</span><p id="wind-area-state">N/A</p></div>
-                    </div>
-                    <div class="gauge-container" style="margin-top:20px;">
-                        <div class="gauge-wrapper">
-                            <canvas id="solarGaugeState"></canvas>
-                            <div class="gauge-center-text">
-                                <span class="value" id="val-solar-state">0.0</span>
-                                <span class="label">Solar</span>
-                            </div>
-                        </div>
-                        <div class="gauge-wrapper">
-                            <canvas id="windGaugeState"></canvas>
-                            <div class="gauge-center-text">
-                                <span class="value" id="val-wind-state">0.0</span>
-                                <span class="label">Wind</span>
-                            </div>
+                    <div class="gauge-wrapper">
+                        <canvas id="windGaugeState"></canvas>
+                        <div class="gauge-center-text">
+                            <span class="value" id="val-wind-state">0.0</span>
+                            <span class="label">Wind</span>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- 
-                MODULE: PROJECT NARRATIVE
-                Content: Organizational background and Partnership details.
-                Note: This section remains scrollable within the Decision Hub.
-            -->
-            <div class="module project-narrative">
-                <h3>Project Background</h3>
-                <p>
-                    The <strong>Somalia Renewable Energy Decision Support System (DSS)</strong> is a strategic initiative by ADRA Somalia 
-                    designed to leverage geospatial intelligence for sustainable development. By integrating Global Horizontal Irradiance (GHI) 
-                    and Wind Power Density (WPD) datasets, this system identifies high-potential zones for decentralized energy infrastructure.
-                </p>
-                <div class="narrative-divider"></div>
-                <p>
-                    Our objective is to streamline the implementation of solar-powered water pumping and community microgrids across 
-                    the federal states. This tool enables field officers and planners to make evidence-based decisions, reducing 
-                    engineering risks associated with terrain topography and optimizing resource allocation for climate-vulnerable communities.
-                </p>
-                <small style="color: var(--adra-green); font-weight: bold; display: block;">© 2026 ADRA Somalia</small>
-                <small style="color: var(--adra-green); font-weight: bold; display: block;">Developed in partnership with the GeoPsy Research team</small>
-            </div>
-        </div> <!-- End Dashboard Panel -->
-    </div> <!-- End Container -->
+        <!-- MODULE: PROJECT NARRATIVE -->
+        <div class="module project-narrative">
+            <h3>Project Background</h3>
+            <p>
+                The <strong>Somalia Renewable Energy Decision Support System (DSS)</strong>
+                is a strategic initiative by ADRA Somalia designed to leverage geospatial
+                intelligence for sustainable development.
+            </p>
+            <div class="narrative-divider"></div>
+            <p>
+                This tool enables field officers and planners to make evidence-based
+                decisions for decentralized energy infrastructure across Somalia.
+            </p>
+            <small style="color: var(--adra-green); font-weight: bold; display: block;">
+                © 2026 ADRA Somalia
+            </small>
+            <small style="color: var(--adra-green); font-weight: bold; display: block;">
+                Developed in partnership with the GeoPsy Research team
+            </small>
+        </div>
 
-    <!-- LOGIC SCRIPTS: Orchestration Stack -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="js/leaflet.js"></script>
-    <script src="js/layerManager.js"></script>
-    <script src="js/dashboard.js"></script>
-    <script src="js/map.js"></script>
+    </div> <!-- END DASHBOARD -->
+</div> <!-- END CONTAINER -->
+
+<!-- LOGIC SCRIPTS -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="js/leaflet.js"></script>
+<script src="js/layerManager.js"></script>
+<script src="js/dashboard.js"></script>
+<script src="js/map.js"></script>
+
 </body>
 </html>

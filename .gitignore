@@ -6,7 +6,6 @@ dss_2.0/
 frontend.zip/
 frontend/solar_tiles/
 frontend/wind_tiles/
-backend/data/rasters/
 backend/data/optimized_rasters
 backend/app/__pycache__
 frontend/resources

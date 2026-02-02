@@ -18,7 +18,7 @@
    */
   const apiBase = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
     ? "http://127.0.0.1:8000"
-    : "https://your-backend-name.onrender.com"; // STAKEHOLDER: Replace with verified Render URL
+    : "https://dss-dashboard-production.up.railway.app"; // STAKEHOLDER: Replace with verified Render URL
 
   /**
    * SECTION: RASTER TILES

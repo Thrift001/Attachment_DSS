@@ -1,7 +1,7 @@
 # =========================================================================
 #  DSS BACKEND API (FastAPI) - Production-Ready Version
 #  Integrates SQLAlchemy session pattern, raster sampling, and Demand Centers.
-#  Refactored: January 2026 for ADRA Somalia Decision Support System
+#  Refactored: February 2026 for ADRA Somalia Decision Support System
 # =========================================================================
 
 import os
@@ -48,18 +48,10 @@ app = FastAPI(title="DSS Backend API", version="1.0")
 
 # -------------------------------------------------------------------------
 # Middleware & Static frontend
-# GIS PROFESSIONAL COMMENT: Implemented Hybrid CORS policy to allow secure 
-# communication between Netlify production and Render API infrastructure.
 # -------------------------------------------------------------------------
-allowed_origins = [
-    "http://127.0.0.1:5500", # Local development
-    "http://localhost:5500",
-    "https://your-frontend-name.netlify.app" # Replace with your actual Netlify URL
-]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # Fine for public DSS, or replace with allowed_origins list above
+    allow_origins=["*"],   
     allow_credentials= True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -71,15 +63,22 @@ if os.path.exists(frontend_dir):
 
 # -------------------------------------------------------------------------
 # Database setup
+# GIS PROFESSIONAL COMMENT: Automated Spatial Extension Validation.
 # -------------------------------------------------------------------------
+try:
+    with engine.connect() as conn:
+        conn.execute(text("CREATE EXTENSION IF NOT EXISTS postgis;"))
+        conn.commit()
+        print("[INFO] PostGIS extension verified/initialized.")
+except Exception as e:
+    print(f"[WARN] PostGIS initialization skipped or failed: {e}")
+
 models.Base.metadata.create_all(bind=engine)
 
 # -------------------------------------------------------------------------
 # Raster configuration
-# GIS PROFESSIONAL COMMENT: Hybrid Path Resolution. 
-# Uses Linux path /data/rasters for Docker/Render and local relative path for Windows dev.
 # -------------------------------------------------------------------------
-RASTER_DIR = os.getenv("RASTER_DIR", os.path.join(os.path.dirname(__file__), "rasters"))
+RASTER_DIR = os.getenv("RASTER_DIR", "/data/rasters")
 os.makedirs(RASTER_DIR, exist_ok=True)
 
 RASTER_PATHS = {
@@ -94,8 +93,7 @@ RASTER_PATHS = {
 open_rasters = {}
 for key, path in RASTER_PATHS.items():
     if not os.path.exists(path):
-        # Professional Warning: Raster missing from Spatial Data Infrastructure path
-        print(f"[ERROR] Spatial asset missing: {path}")
+        print(f"[WARN] Raster asset missing at path: {path}")
         continue
     open_rasters[key] = rasterio.open(path)
 
@@ -104,10 +102,7 @@ _transformers = {}
 
 
 def reproject_point(lon: float, lat: float, target_crs):
-    """
-    GIS PROFESSIONAL COMMENT: Reproject WGS84 (EPSG:4326) coordinates 
-    to native Raster Coordinate Reference System (CRS) for accurate pixel sampling.
-    """
+    """Reproject coordinates to raster CRS."""
     try:
         key = target_crs.to_string()
         if key not in _transformers:
@@ -210,10 +205,7 @@ def get_major_towns():
 
 @app.get("/states")
 def get_states(db: Session = Depends(get_db)):
-    """
-    GIS PROFESSIONAL COMMENT: Spatial Querying to fetch administrative polygons (MultiPolygon)
-    with integrated statistical attributes for regional visualization.
-    """
+    """Fetch GeoJSON of all states with metrics."""
     query = text("""
         SELECT jsonb_build_object(
             'type', 'FeatureCollection',
@@ -255,10 +247,7 @@ def get_state_metrics(
     state: Optional[str] = None,
     db: Session = Depends(get_db)
 ):
-    """
-    GIS PROFESSIONAL COMMENT: Point-in-Polygon lookup using PostGIS ST_Contains 
-    to retrieve regional aggregated energy metrics based on geographical location.
-    """
+    """Fetch state metrics by name or coordinates, with LCOE computed."""
     try:
         if state:
             query = text("""
@@ -291,7 +280,6 @@ def get_state_metrics(
         solar_score = data.get("solar_mean_score")
         wind_score = data.get("wind_mean_score")
 
-        # GIS PROFESSIONAL COMMENT: LCOE (Levelized Cost of Energy) estimation modeling
         data["lcoe_solar"] = round(0.15 - (solar_score * 0.005), 3) if solar_score else None
         data["lcoe_wind"] = round(0.12 - (wind_score * 0.004), 3) if wind_score else None
         return data
@@ -302,10 +290,7 @@ def get_state_metrics(
 
 @app.get("/api/report/pixel")
 def get_pixel_report(lon: float, lat: float):
-    """
-    GIS PROFESSIONAL COMMENT: High-resolution Pixel Sampling engine. 
-    Retrieves site-specific resource data from GeoTIFF raster layers.
-    """
+    """Sample raster pixel values for site-specific metrics."""
     if not (-180 <= lon <= 180 and -90 <= lat <= 90):
         raise HTTPException(status_code=400, detail="Invalid lat/lon")
     # Tighten to Somalia bounds for efficiency
@@ -327,7 +312,7 @@ def get_pixel_report(lon: float, lat: float):
 
             value = next(src.sample(coords))[0]
 
-            # Handle nodata robustly (GIS standard for missing observations)
+            # Handle nodata robustly
             nodata = src.nodata
             if nodata is not None:
                 try:
@@ -354,7 +339,12 @@ def get_pixel_report(lon: float, lat: float):
 
 @app.get("/health")
 def health_check(db: Session = Depends(get_db)):
-    """Health check for API, database, rasters, and PROJ setup."""
+    """
+    GIS PROFESSIONAL COMMENT: Infrastructure Pulse Audit.
+    Logic: Orchestrates a status report of the RDBMS connection, 
+    Environment variables, and performs a directory listing of the 
+    Remote Raster Data Store to verify binary asset localization.
+    """
     status: dict[str, Any] = {"api": "ok"}
 
     # Check database connection
@@ -363,6 +353,19 @@ def health_check(db: Session = Depends(get_db)):
         status["database"] = "ok"
     except Exception as e:
         status["database"] = f"error: {e}"
+
+    # Check Raster Directory Persistence
+    # GIS PROFESSIONAL COMMENT: Remote File System Probe.
+    # This replaces the need for a manual shell by exposing the 
+    # internal /data/rasters directory structure via the API.
+    try:
+        if os.path.exists(RASTER_DIR):
+            status["raster_directory"] = RASTER_DIR
+            status["detected_files"] = os.listdir(RASTER_DIR)
+        else:
+            status["raster_directory"] = "MISSING"
+    except Exception as e:
+        status["raster_directory"] = f"unreadable: {e}"
 
     # Check rasters
     raster_status = {}
@@ -373,7 +376,7 @@ def health_check(db: Session = Depends(get_db)):
             raster_status[key] = f"error: {e}"
     status["rasters"] = raster_status
 
-    # Check PROJ path configuration
+    # Check PROJ
     status["proj_lib"] = os.environ.get("PROJ_LIB", "not set")
 
     return status

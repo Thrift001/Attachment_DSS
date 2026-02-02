@@ -17,7 +17,7 @@
    */
   const apiBase = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
     ? "http://127.0.0.1:8000"
-    : "https://your-backend-name.onrender.com"; // STAKEHOLDER: Replace this placeholder with your specific Render URL
+    : "https://dss-dashboard-production.up.railway.app"; // STAKEHOLDER: Replace this placeholder with your specific Render URL
 
   /* Geodetic entry point: Center of Somali Peninsula area of interest */
   const initialView = { center: [5.15, 46.2], zoom: 6 }; 

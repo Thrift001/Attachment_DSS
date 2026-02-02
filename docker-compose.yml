@@ -1,28 +1,40 @@
 services:
-  db:
-    image: postgis/postgis:15-3.4
-    container_name: dss-spatial-db
+  # GIS INFRASTRUCTURE: Primary Spatial RDBMS
+  # Image Source: Official PostGIS Docker Image (Debian-based)
+  spatial_db:
+    image: postgis/postgis:17-3.5
+    container_name: dss-postgis-engine
     restart: always
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: thrift
       POSTGRES_DB: somalia_dss_new
     ports:
-      - "5585:5432" # Mapped to your specific local database port
+      - "5585:5432" # Mapping internal GIS port to local development port
+    volumes:
+      # GIS PROFESSIONAL COMMENT: Persistent storage for OGC-compliant 
+      # geometry tables and administrative technical metadata.
+      - dss_postgres_data:/var/lib/postgresql/data
 
+  # GIS LOGIC: Geoprocessing API (FastAPI)
   backend:
     build:
       context: .
-      dockerfile: Dockerfile.backend
-    container_name: dss-spatial-api
+      dockerfile: Dockerfile
+    container_name: dss-api-service
     depends_on:
-      - db
+      - spatial_db
     environment:
-      DATABASE_URL: postgresql://postgres:thrift@db:5432/somalia_dss_new
+      # GIS PROFESSIONAL COMMENT: Internal network routing to the 
+      # Spatial Engine using the container service name.
+      DATABASE_URL: postgresql://postgres:thrift@spatial_db:5432/somalia_dss_new
       RASTER_DIR: /data/rasters
     ports:
       - "8000:8000"
     volumes:
-      - ./backend/app:/app/app
-      # Mount rasters locally for real-time data adjustments
+      # GIS DATA INJECTION: Mapping local high-resolution GeoTIFF store 
+      # to the geoprocessing service environment.
       - ./backend/app/rasters:/data/rasters
+
+volumes:
+  dss_postgres_data: # Logical volume for the Spatial Database persistence

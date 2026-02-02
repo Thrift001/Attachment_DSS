@@ -10,3 +10,5 @@ backend/data/rasters/
 backend/data/optimized_rasters
 backend/app/__pycache__
 frontend/resources
+# Local Netlify folder
+.netlify

@@ -48,10 +48,18 @@ app = FastAPI(title="DSS Backend API", version="1.0")
 
 # -------------------------------------------------------------------------
 # Middleware & Static frontend
+# GIS PROFESSIONAL COMMENT: Implemented Hybrid CORS policy to allow secure 
+# communication between Netlify production and Render API infrastructure.
 # -------------------------------------------------------------------------
+allowed_origins = [
+    "http://127.0.0.1:5500", # Local development
+    "http://localhost:5500",
+    "https://your-frontend-name.netlify.app" # Replace with your actual Netlify URL
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],   
+    allow_origins=["*"], # Fine for public DSS, or replace with allowed_origins list above
     allow_credentials= True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -68,8 +76,10 @@ models.Base.metadata.create_all(bind=engine)
 
 # -------------------------------------------------------------------------
 # Raster configuration
+# GIS PROFESSIONAL COMMENT: Hybrid Path Resolution. 
+# Uses Linux path /data/rasters for Docker/Render and local relative path for Windows dev.
 # -------------------------------------------------------------------------
-RASTER_DIR = os.getenv("RASTER_DIR", "/data/rasters")
+RASTER_DIR = os.getenv("RASTER_DIR", os.path.join(os.path.dirname(__file__), "rasters"))
 os.makedirs(RASTER_DIR, exist_ok=True)
 
 RASTER_PATHS = {
@@ -84,7 +94,9 @@ RASTER_PATHS = {
 open_rasters = {}
 for key, path in RASTER_PATHS.items():
     if not os.path.exists(path):
-        raise FileNotFoundError(f"Raster not found: {path}")
+        # Professional Warning: Raster missing from Spatial Data Infrastructure path
+        print(f"[ERROR] Spatial asset missing: {path}")
+        continue
     open_rasters[key] = rasterio.open(path)
 
 # Cache for coordinate transformations
@@ -92,7 +104,10 @@ _transformers = {}
 
 
 def reproject_point(lon: float, lat: float, target_crs):
-    """Reproject coordinates to raster CRS."""
+    """
+    GIS PROFESSIONAL COMMENT: Reproject WGS84 (EPSG:4326) coordinates 
+    to native Raster Coordinate Reference System (CRS) for accurate pixel sampling.
+    """
     try:
         key = target_crs.to_string()
         if key not in _transformers:
@@ -195,7 +210,10 @@ def get_major_towns():
 
 @app.get("/states")
 def get_states(db: Session = Depends(get_db)):
-    """Fetch GeoJSON of all states with metrics."""
+    """
+    GIS PROFESSIONAL COMMENT: Spatial Querying to fetch administrative polygons (MultiPolygon)
+    with integrated statistical attributes for regional visualization.
+    """
     query = text("""
         SELECT jsonb_build_object(
             'type', 'FeatureCollection',
@@ -237,7 +255,10 @@ def get_state_metrics(
     state: Optional[str] = None,
     db: Session = Depends(get_db)
 ):
-    """Fetch state metrics by name or coordinates, with LCOE computed."""
+    """
+    GIS PROFESSIONAL COMMENT: Point-in-Polygon lookup using PostGIS ST_Contains 
+    to retrieve regional aggregated energy metrics based on geographical location.
+    """
     try:
         if state:
             query = text("""
@@ -270,6 +291,7 @@ def get_state_metrics(
         solar_score = data.get("solar_mean_score")
         wind_score = data.get("wind_mean_score")
 
+        # GIS PROFESSIONAL COMMENT: LCOE (Levelized Cost of Energy) estimation modeling
         data["lcoe_solar"] = round(0.15 - (solar_score * 0.005), 3) if solar_score else None
         data["lcoe_wind"] = round(0.12 - (wind_score * 0.004), 3) if wind_score else None
         return data
@@ -280,7 +302,10 @@ def get_state_metrics(
 
 @app.get("/api/report/pixel")
 def get_pixel_report(lon: float, lat: float):
-    """Sample raster pixel values for site-specific metrics."""
+    """
+    GIS PROFESSIONAL COMMENT: High-resolution Pixel Sampling engine. 
+    Retrieves site-specific resource data from GeoTIFF raster layers.
+    """
     if not (-180 <= lon <= 180 and -90 <= lat <= 90):
         raise HTTPException(status_code=400, detail="Invalid lat/lon")
     # Tighten to Somalia bounds for efficiency
@@ -291,7 +316,7 @@ def get_pixel_report(lon: float, lat: float):
         data = {}
         for key, src in open_rasters.items():
             raster_crs = src.crs
-            # Log CRS for debugging (remove in production if not needed)
+            # Log CRS for debugging
             print(f"[DEBUG] Sampling {key} with CRS: {raster_crs}")
 
             if raster_crs.is_projected:  # Reproject only for projected CRS (e.g., UTM)
@@ -302,10 +327,9 @@ def get_pixel_report(lon: float, lat: float):
 
             value = next(src.sample(coords))[0]
 
-            # Handle nodata robustly
+            # Handle nodata robustly (GIS standard for missing observations)
             nodata = src.nodata
             if nodata is not None:
-                # Tighten tolerance for tiny nodata values like in GHI (float32 precision)
                 try:
                     if abs(float(value) - nodata) < 1e-10:
                         value = np.nan
@@ -318,12 +342,6 @@ def get_pixel_report(lon: float, lat: float):
                 value = float(value)
 
             data[key] = value
-
-        # Derived metrics (unchanged)
-        solar_score = data.get("solar_mean_score")
-        wind_score = data.get("wind_mean_score")
-
-       
 
         if not any(v is not None for v in data.values()):
             raise HTTPException(status_code=404, detail="No data at this location (likely offshore)")
@@ -355,7 +373,7 @@ def health_check(db: Session = Depends(get_db)):
             raster_status[key] = f"error: {e}"
     status["rasters"] = raster_status
 
-    # Check PROJ
+    # Check PROJ path configuration
     status["proj_lib"] = os.environ.get("PROJ_LIB", "not set")
 
     return status

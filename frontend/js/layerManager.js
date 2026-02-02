@@ -11,32 +11,39 @@
  */
 
 (function () {
-  // Target API base address - defaults to localhost for development
-  const apiBase = "http://127.0.0.1:8000";
+  /**
+   * HYBRID API CONFIGURATION
+   * GIS INFRASTRUCTURE: Ensures communication between frontend client and
+   * centralized Geospatial Backend regardless of deployment environment.
+   */
+  const apiBase = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+    ? "http://127.0.0.1:8000"
+    : "https://your-backend-name.onrender.com"; // STAKEHOLDER: Replace with verified Render URL
 
   /**
    * SECTION: RASTER TILES
    * Orchestrates the loading of Solar and Wind potential heatmaps.
-   * Uses dedicated Leaflet panes to manage visual stacking (zIndex).
+   * GIS LOGIC: Leverages XYZ Tile schemes for high-performance rendering of 
+   * dense energy potential indices.
    */
   function createTileLayers(map) {
-    // Initialize dedicated panes for energy overlays
+    // Initialize dedicated panes for energy overlays to manage visual hierarchy
     if (!map.getPane('windPane')) map.createPane('windPane');
     map.getPane('windPane').style.zIndex = 400;
 
     if (!map.getPane('solarPane')) map.createPane('solarPane');
     map.getPane('solarPane').style.zIndex = 401;
 
-    // Define Wind Potential Layer (WPD derived)
+    // Define Wind Potential Layer (Derived from Wind Power Density Rasters)
     const windLayer = L.tileLayer('./wind_tiles/{z}/{x}/{y}.png', {
       pane: 'windPane',
       minZoom: 5, 
       maxZoom: 11,
       attribution: 'Wind Potential © ADRA Somalia',
-      opacity: 0.7 // Optimized for visibility of base map and overlays
+      opacity: 0.7 
     });
 
-    // Define Solar Potential Layer (GHI derived)
+    // Define Solar Potential Layer (Derived from Global Horizontal Irradiance)
     const solarLayer = L.tileLayer('./solar_tiles/{z}/{x}/{y}.png', {
       pane: 'solarPane',
       minZoom: 5, 
@@ -51,7 +58,7 @@
   /**
    * SECTION: ADMINISTRATIVE BOUNDARIES
    * Processes GeoJSON data derived from Federal State shapefiles.
-   * Implements interactive highlighting and regional analysis triggers.
+   * GIS LOGIC: Provides administrative context for regional energy planning (ADM1).
    */
   function createStatesLayer(data, map) {
     if (!data || !data.features) return L.layerGroup();
@@ -66,7 +73,7 @@
         color: '#065C53',      // ADRA Green
         weight: 2, 
         fillOpacity: 0.05, 
-        dashArray: '3'         // Dashed border for administrative distinction
+        dashArray: '3'         
       },
       onEachFeature: function (feature, layer) {
         const name = feature.properties.state_name || 'Unknown';
@@ -88,7 +95,8 @@
   /**
    * SECTION: MAJOR TOWNS (DEMAND CENTERS)
    * Orchestrates the display of verified urban hubs. 
-   * Uses GIS icons to identify high-priority investment nodes.
+   * GIS LOGIC: Point-based feature representation of World Bank verified 
+   * population centers for targeted infrastructure investment.
    */
   function createTownsLayer(data, map) {
     if (!data || !data.features) return L.layerGroup();
@@ -133,7 +141,8 @@
 
   /**
    * CORE INITIALIZATION: Parallel Fetching
-   * Gathers all spatial layers and demand center data concurrently.
+   * GIS Logic: Concurrently requests spatial datasets to optimize load times 
+   * for data-heavy map visualizations.
    */
   async function initLayers(map) {
     const tileLayers = createTileLayers(map);
@@ -141,7 +150,7 @@
     tileLayers.solarLayer.addTo(map);
 
     try {
-      // Simultaneous retrieval of regional and town datasets
+      // Simultaneous retrieval of regional and town datasets from API endpoints
       const [statesRes, townsRes] = await Promise.all([
         fetch(`${apiBase}/states`),
         fetch(`${apiBase}/api/towns`)
@@ -152,7 +161,7 @@
       const statesData = await statesRes.json();
       const townsData = await townsRes.json();
       
-      // Construct interactive vectors
+      // Construct interactive vector layers
       const statesLayer = createStatesLayer(statesData, map).addTo(map);
       const townsLayer = createTownsLayer(townsData, map).addTo(map);
 
@@ -164,6 +173,6 @@
     }
   }
 
-  // Expose global interface for map.js
+  // Expose global interface for map.js orchestration
   window.initMapLayers = initLayers;
 })();

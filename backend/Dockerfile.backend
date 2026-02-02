@@ -1,0 +1,29 @@
+FROM osgeo/gdal:ubuntu-small-3.6.2
+
+WORKDIR /app
+
+# Install Python and System Dependencies
+RUN apt-get update && apt-get install -y \
+    python3-pip \
+    python3-dev \
+    build-essential \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python packages
+COPY requirements.txt .
+RUN pip3 install --no-cache-dir -r requirements.txt
+
+# Copy Backend logic
+COPY backend/app/ /app/app/
+
+# GIS DATA INJECTION: Copies raw raster datasets into the container 
+# to enable pixel-sampling API functionality.
+COPY backend/app/rasters/ /data/rasters/
+
+ENV RASTER_DIR=/data/rasters
+ENV PYTHONUNBUFFERED=1
+
+EXPOSE 8000
+
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

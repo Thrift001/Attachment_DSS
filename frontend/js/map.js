@@ -2,13 +2,27 @@
  * =========================================================================
  * map.js - SPATIAL ORCHESTRATION ENGINE (FULL UNABRIDGED)
  * =========================================================================
+ * GIS LOGIC: This module manages the geodetic visualization and 
+ * coordinate-based analytical requests for the Somalia DSS.
+ * =========================================================================
  */
 
 'use strict';
 
 (function () {
-  const apiBase = "http://127.0.0.1:8000"; 
+  /**
+   * HYBRID API CONFIGURATION
+   * Logic: Detects the host environment to switch between local development 
+   * and the Render-hosted Spatial Data Infrastructure (SDI).
+   */
+  const apiBase = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+    ? "http://127.0.0.1:8000"
+    : "https://your-backend-name.onrender.com"; // STAKEHOLDER: Replace this placeholder with your specific Render URL
+
+  /* Geodetic entry point: Center of Somali Peninsula area of interest */
   const initialView = { center: [5.15, 46.2], zoom: 6 }; 
+
+  /* Spatial extent constraints to prevent out-of-bounds telemetry requests */
   const SOMALIA_BOUNDS = { lat: [-1.5, 12.0], lon: [41.0, 51.5] };
 
   let map;
@@ -32,6 +46,7 @@
     if (stRep) stRep.classList.toggle('hidden', isSite);
     
     // --- FOCUS MODE: AUTO SHUTOFF BOUNDARIES ---
+    /* GIS Logic: Toggling vector administrative boundaries to reduce visual clutter during raster analysis */
     if (layers.statesLayer) {
         if (isSite) {
             map.removeLayer(layers.statesLayer);
@@ -55,6 +70,7 @@
   /**
    * ANALYTIC PIPELINE
    * PRESERVED: townData parameter for deep demographic injection.
+   * GIS Logic: Performs a spatial join between point geometry and multi-layered raster datasets.
    */
   async function orchestrateSpatialAnalysis(lat, lon, source = "manual", townData = null) {
     const statusEl = document.getElementById('search-status');
@@ -70,6 +86,7 @@
     map.setView([lat, lon], Math.max(map.getZoom(), 11));
 
     try {
+      /* Simultaneous asynchronous retrieval of raster pixel values and administrative metadata */
       const [pixelRes, stateRes] = await Promise.all([
         fetch(`${apiBase}/api/report/pixel?lon=${lon}&lat=${lat}`),
         fetch(`${apiBase}/state_metrics?lat=${lat}&lon=${lon}`)
@@ -137,6 +154,10 @@
     } catch (e) { if (statusEl) statusEl.textContent = "Regional server error."; }
   }
 
+  /**
+   * GPS ORCHESTRATOR
+   * GIS Logic: Real-time acquisition of user geodetic position for localized decision support.
+   */
   async function triggerGPSOrchestrator() {
     const statusEl = document.getElementById('search-status');
     const agentEl = document.getElementById('agent-insight');

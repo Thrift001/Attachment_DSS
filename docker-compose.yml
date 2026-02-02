@@ -1,42 +1,28 @@
 services:
   db:
     image: postgis/postgis:15-3.4
-    container_name: dss-db
+    container_name: dss-spatial-db
     restart: always
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: dss
+      POSTGRES_PASSWORD: thrift
+      POSTGRES_DB: somalia_dss_new
     ports:
-      - "5432:5432"
-    volumes:
-      - db_data:/var/lib/postgresql/data
+      - "5585:5432" # Mapped to your specific local database port
 
   backend:
     build:
       context: .
       dockerfile: Dockerfile.backend
-    container_name: dss-backend
+    container_name: dss-spatial-api
     depends_on:
       - db
     environment:
-      DATABASE_URL: postgresql+psycopg2://postgres:postgres@db:5432/dss
+      DATABASE_URL: postgresql://postgres:thrift@db:5432/somalia_dss_new
       RASTER_DIR: /data/rasters
-    volumes:
-      - ./app:/app
-      - ./data/rasters:/data/rasters
     ports:
       - "8000:8000"
-
-  frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile.frontend
-    container_name: dss-frontend
-    depends_on:
-      - backend
-    ports:
-      - "80:80"
-
-volumes:
-  db_data:
+    volumes:
+      - ./backend/app:/app/app
+      # Mount rasters locally for real-time data adjustments
+      - ./backend/app/rasters:/data/rasters

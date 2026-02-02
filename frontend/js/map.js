@@ -2,9 +2,8 @@
  * =========================================================================
  * map.js - SPATIAL ORCHESTRATION ENGINE (FULL UNABRIDGED)
  * =========================================================================
- * GIS LOGIC: This module manages the geodetic visualization and 
- * coordinate-based analytical requests for the Somalia DSS.
- * =========================================================================
+ * GIS PROFESSIONAL COMMENT: This engine manages geodetic telemetry and 
+ * coordinates the asynchronous sampling of multi-layer raster datasets.
  */
 
 'use strict';
@@ -12,12 +11,13 @@
 (function () {
   /**
    * HYBRID API CONFIGURATION
-   * Logic: Detects the host environment to switch between local development 
-   * and the Render-hosted Spatial Data Infrastructure (SDI).
+   * GIS PROFESSIONAL COMMENT: Automated SDI Endpoint resolution.
+   * Logic: Dynamically toggles between local loopback (Offline) and the 
+   * production Railway API (Online) to ensure continuous system availability.
    */
   const apiBase = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
     ? "http://127.0.0.1:8000"
-    : "https://dss-dashboard-production.up.railway.app"; // STAKEHOLDER: Replace this placeholder with your specific Render URL
+    : "https://dss-dashboard-production.up.railway.app"; 
 
   /* Geodetic entry point: Center of Somali Peninsula area of interest */
   const initialView = { center: [5.15, 46.2], zoom: 6 }; 
@@ -86,7 +86,11 @@
     map.setView([lat, lon], Math.max(map.getZoom(), 11));
 
     try {
-      /* Simultaneous asynchronous retrieval of raster pixel values and administrative metadata */
+      /**
+       * GIS PROFESSIONAL COMMENT: Parallel Spatial Query.
+       * Logic: Simultaneously sampling the Raster Data Store (Pixel Level) 
+       * and the Vector RDBMS (State Metrics) to assemble the site dossier.
+       */
       const [pixelRes, stateRes] = await Promise.all([
         fetch(`${apiBase}/api/report/pixel?lon=${lon}&lat=${lat}`),
         fetch(`${apiBase}/state_metrics?lat=${lat}&lon=${lon}`)

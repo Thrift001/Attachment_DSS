@@ -49,12 +49,12 @@ app = FastAPI(title="DSS Backend API", version="1.0")
 # -------------------------------------------------------------------------
 # Middleware & Static frontend
 # -------------------------------------------------------------------------
+frontend_url = os.getenv("FRONTEND_URL", "*")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://somalia-dss-frontend.netlify.app"
-                   "http://localhost:5500",
-        "http://127.0.0.1:5500"],   
-    allow_credentials= True,
+    allow_origins=[frontend_url] if frontend_url != "*" else ["*"],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -382,3 +382,7 @@ def health_check(db: Session = Depends(get_db)):
     status["proj_lib"] = os.environ.get("PROJ_LIB", "not set")
 
     return status
+
+frontend_dir = os.path.join(os.path.dirname(__file__), "..", "..", "frontend")
+if os.path.exists(frontend_dir):
+    app.mount("/", StaticFiles(directory=frontend_dir, html=True), name="frontend")

@@ -18,26 +18,13 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 from dotenv import load_dotenv
 
-# Attempt to obtain pyproj's data directory in a way that works across pyproj versions
-try:
-    # pyproj exposes datadir as a submodule in some installations
-    import pyproj.datadir as _datadir  # type: ignore
-    _proj_datadir = _datadir.get_data_dir()
-except Exception:
-    # fallback: try accessing datadir attribute on the pyproj module or leave None
-    try:
-        _proj_datadir = pyproj.datadir.get_data_dir()  # type: ignore
-    except Exception:
-        _proj_datadir = None
+# GIS PROFESSIONAL COMMENT: Automated Geodetic Reference alignment.
+# Forces the application to use the correct PROJ database version 
+# to prevent 500 errors during spatial data serialization.
+os.environ["PROJ_LIB"] = "/usr/share/proj"
 
 from . import models
 from .database import engine, get_db
-
-
-# Fix PROJ conflict (force pyproj to use its bundled proj.db)
-# -------------------------------------------------------------------------
-if _proj_datadir:
-    os.environ["PROJ_LIB"] = _proj_datadir
 
 # -------------------------------------------------------------------------
 # Load environment variables
@@ -49,23 +36,16 @@ app = FastAPI(title="DSS Backend API", version="1.0")
 # -------------------------------------------------------------------------
 # Middleware & Static frontend
 # -------------------------------------------------------------------------
-frontend_url = os.getenv("FRONTEND_URL", "*")
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[frontend_url] if frontend_url != "*" else ["*"],
-    allow_credentials=True,
+    allow_origins=["*"],   
+    allow_credentials= True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-frontend_dir = os.path.join(os.path.dirname(__file__), "..", "frontend", "dist")
-if os.path.exists(frontend_dir):
-    app.mount("/", StaticFiles(directory=frontend_dir, html=True), name="frontend")
-
 # -------------------------------------------------------------------------
 # Database setup
-# GIS PROFESSIONAL COMMENT: Automated Spatial Extension Validation.
 # -------------------------------------------------------------------------
 try:
     with engine.connect() as conn:
@@ -207,7 +187,11 @@ def get_major_towns():
 
 @app.get("/states")
 def get_states(db: Session = Depends(get_db)):
-    """Fetch GeoJSON of all states with metrics."""
+    """
+    GIS PROFESSIONAL COMMENT: Fuzzy Join Logic.
+    Modified the JOIN condition to handle naming discrepancies between 
+    vector boundaries and statistical attribute tables (e.g., 'Banadir' vs 'Banadir Regional Admin').
+    """
     query = text("""
         SELECT jsonb_build_object(
             'type', 'FeatureCollection',
@@ -219,7 +203,7 @@ def get_states(db: Session = Depends(get_db)):
                 'geometry', ST_AsGeoJSON(f.geom)::jsonb,
                 'properties', jsonb_build_object(
                     'id', f.id,
-                    'state_name', f.states,
+                    'state_name', f.state_name,
                     'mean_ghi', s.mean_ghi,
                     'mean_wpd', s.mean_wpd,
                     'mean_wind_speed_ms', s.mean_wind_speed_ms,
@@ -231,14 +215,16 @@ def get_states(db: Session = Depends(get_db)):
             ) AS feature
             FROM federal_states f
             LEFT JOIN state_statistics s
-                ON LOWER(f.states) = LOWER(s.state_name)
+                ON f.state_name ILIKE '%' || s.state_name || '%' 
+                OR s.state_name ILIKE '%' || f.state_name || '%'
         ) features;
     """)
     try:
         result = db.execute(query).scalar_one_or_none()
         return result or {"type": "FeatureCollection", "features": []}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Database error in /states: {e}")
+        print(f"[ERROR] /states failed: {e}")
+        return {"type": "FeatureCollection", "features": []}
 
 
 
@@ -252,9 +238,10 @@ def get_state_metrics(
     """Fetch state metrics by name or coordinates, with LCOE computed."""
     try:
         if state:
+            # GIS PROFESSIONAL COMMENT: Utilizing ILIKE for robust name matching
             query = text("""
                 SELECT * FROM state_statistics
-                WHERE state_name ILIKE :state
+                WHERE state_name ILIKE :state OR :state ILIKE '%' || state_name || '%'
                 LIMIT 1;
             """)
             result = db.execute(query, {"state": state}).fetchone()
@@ -264,7 +251,7 @@ def get_state_metrics(
                 raise HTTPException(status_code=400, detail="Coordinates outside Somalia bounds")
             query = text("""
                 SELECT s.* FROM state_statistics s
-                JOIN federal_states f ON LOWER(s.state_name) = LOWER(f.states)
+                JOIN federal_states f ON f.state_name ILIKE '%' || s.state_name || '%'
                 WHERE ST_Contains(
                     f.geom,
                     ST_SetSRID(ST_Point(:lon, :lat), 4326)
@@ -287,15 +274,13 @@ def get_state_metrics(
         return data
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error fetching state metrics: {e}")
+        print(f"[ERROR] /state_metrics failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Internal database error.")
 
 
 @app.get("/api/report/pixel")
 def get_pixel_report(lon: float, lat: float):
     """Sample raster pixel values for site-specific metrics."""
-    if not (-180 <= lon <= 180 and -90 <= lat <= 90):
-        raise HTTPException(status_code=400, detail="Invalid lat/lon")
-    # Tighten to Somalia bounds for efficiency
     if not (40.5 < lon < 51.5 and -2 < lat < 12):
         raise HTTPException(status_code=400, detail="Coordinates outside Somalia bounds")
 
@@ -303,32 +288,20 @@ def get_pixel_report(lon: float, lat: float):
         data = {}
         for key, src in open_rasters.items():
             raster_crs = src.crs
-            # Log CRS for debugging
-            print(f"[DEBUG] Sampling {key} with CRS: {raster_crs}")
-
-            if raster_crs.is_projected:  # Reproject only for projected CRS (e.g., UTM)
+            if raster_crs.is_projected: 
                 x, y = reproject_point(lon, lat, raster_crs)
                 coords = [(x, y)]
-            else:  # Assume geographic (WGS84/4326 variant), use degrees directly
+            else: 
                 coords = [(lon, lat)]
 
             value = next(src.sample(coords))[0]
 
-            # Handle nodata robustly
             nodata = src.nodata
             if nodata is not None:
-                try:
-                    if abs(float(value) - nodata) < 1e-10:
-                        value = np.nan
-                except Exception:
+                if abs(float(value) - nodata) < 1e-10:
                     value = np.nan
 
-            if np.isnan(value):
-                value = None
-            else:
-                value = float(value)
-
-            data[key] = value
+            data[key] = None if np.isnan(value) else float(value)
 
         if not any(v is not None for v in data.values()):
             raise HTTPException(status_code=404, detail="No data at this location (likely offshore)")
@@ -341,35 +314,13 @@ def get_pixel_report(lon: float, lat: float):
 
 @app.get("/health")
 def health_check(db: Session = Depends(get_db)):
-    """
-    GIS PROFESSIONAL COMMENT: Infrastructure Pulse Audit.
-    Logic: Orchestrates a status report of the RDBMS connection, 
-    Environment variables, and performs a directory listing of the 
-    Remote Raster Data Store to verify binary asset localization.
-    """
     status: dict[str, Any] = {"api": "ok"}
-
-    # Check database connection
     try:
         db.execute(text("SELECT 1;"))
         status["database"] = "ok"
     except Exception as e:
         status["database"] = f"error: {e}"
-
-    # Check Raster Directory Persistence
-    # GIS PROFESSIONAL COMMENT: Remote File System Probe.
-    # This replaces the need for a manual shell by exposing the 
-    # internal /data/rasters directory structure via the API.
-    try:
-        if os.path.exists(RASTER_DIR):
-            status["raster_directory"] = RASTER_DIR
-            status["detected_files"] = os.listdir(RASTER_DIR)
-        else:
-            status["raster_directory"] = "MISSING"
-    except Exception as e:
-        status["raster_directory"] = f"unreadable: {e}"
-
-    # Check rasters
+    
     raster_status = {}
     for key, src in open_rasters.items():
         try:
@@ -377,12 +328,10 @@ def health_check(db: Session = Depends(get_db)):
         except Exception as e:
             raster_status[key] = f"error: {e}"
     status["rasters"] = raster_status
-
-    # Check PROJ
     status["proj_lib"] = os.environ.get("PROJ_LIB", "not set")
-
     return status
 
+# Prioritize API routes by placing Static mount at the bottom
 frontend_dir = os.path.join(os.path.dirname(__file__), "..", "..", "frontend")
 if os.path.exists(frontend_dir):
     app.mount("/", StaticFiles(directory=frontend_dir, html=True), name="frontend")

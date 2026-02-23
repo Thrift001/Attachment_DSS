@@ -93,3 +93,15 @@ Tile Store: 300MB of PNG tiles managed via direct binary injection to Nginx node
 Developed as a strategic geospatial initiative by ADRA Somalia in partnership with the GeoPsy Research team.
 
 © 2026 ADRA Somalia. All geodetic data and resource potential maps are protected under internal spatial policy.
+
+
+
+graph TD
+    User((User/Field Officer)) -->|WGS84 Coordinates| Frontend[Netlify Edge CDN]
+    Frontend -->|Asynchronous Fetch| API[Railway Geoprocessing API]
+    API -->|ST_Contains Query| DB[(PostGIS RDBMS)]
+    API -->|Pixel Sampling| Rasters[Raster SAM Engine]
+    Rasters -->|Extract GHI/WPD/Slope| API
+    DB -->|Administrative Metadata| API
+    API -->|JSON Dossier| Frontend
+    Frontend -->|Live Visual Updates| User
